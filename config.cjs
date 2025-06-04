@@ -19,7 +19,7 @@ const config = {
   
   
   REJECT_CALL: process.env.REJECT_CALL !== undefined ? process.env.REJECT_CALL === 'true' : true, 
-  ANTI_WORD: process.env.ANTI_WORD !== undefined ? process.env.ANTI_WORD === 'true' : true,
+  ANTI_WORD: process.env.ANTI_WORD !== undefined ? process.env.ANTI_WORD === 'false' : true,
   ANTI_DELETE: process.env.ANTI_DELETE !== undefined ? process.env.ANTI_DELETE === 'true' : true,
   MODE: process.env.MODE || "public",
   OWNER_NAME: process.env.OWNER_NAME || "Ian Tech",
