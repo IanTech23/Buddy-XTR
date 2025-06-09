@@ -23,7 +23,7 @@ const config = {
   ANTI_DELETE: process.env.ANTI_DELETE !== undefined ? process.env.ANTI_DELETE === 'true' : true,
   MODE: process.env.MODE || "public",
   OWNER_NAME: process.env.OWNER_NAME || "Ian Tech",
-  OWNER_NUMBER: process.env.OWNER_NUMBER || "254723278526,254792918934",
+  OWNER_NUMBER: process.env.OWNER_NUMBER || "254723278526",
   GEMINI_KEY: process.env.GEMINI_KEY || "AIzaSyCUPaxfIdZawsKZKqCqJcC-GWiQPCXKTDc",
   WELCOME: process.env.WELCOME !== undefined ? process.env.WELCOME === 'false' : false, 
 };
