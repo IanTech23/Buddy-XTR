@@ -1068026,515 +1068026,94 @@
 
 
 
-
-import dotenv from 'dotenv';
-dotenv.config();
-
-import baileys from '@whiskeysockets/baileys';
-const {
-    makeWASocket,
-    Browsers,
-    fetchLatestBaileysVersion,
-    DisconnectReason,
-    useMultiFileAuthState,
-    getContentType,
-    downloadContentFromMessage
-} = baileys;
-
-import { Handler, Callupdate, GroupUpdate } from './src/event/index.js';
-import express from 'express';
-import pino from 'pino';
-import fs from 'fs';
-import { File } from 'megajs';
-import NodeCache from 'node-cache';
-import path from 'path';
-import chalk from 'chalk';
-import moment from 'moment-timezone';
 import axios from 'axios';
-import config from './config.cjs';
-import pkg from './lib/autoreact.cjs';
+import config from '../../config.cjs';
 
-const { emojis, doReact } = pkg;
-const prefix = process.env.PREFIX || config.PREFIX;
-const sessionName = "session";
-const app = express();
-const orange = chalk.bold.hex("#FFA500");
-const lime = chalk.bold.hex("#32CD32");
-let useQR = false;
-let initialConnection = true;
-const PORT = process.env.PORT || 3000;
+const LogoCmd = async (message, bot) => {
+  const prefix = config.PREFIX;
+  const userName = message.pushName || "User";
+  const command = message.body.startsWith(prefix) ? message.body.slice(prefix.length).split(" ")[0].toLowerCase() : '';
 
-const MAIN_LOGGER = pino({
-    timestamp: () => `,"time":"${moment().tz("Africa/Nairobi").toJSON()}"`
-});
-const logger = MAIN_LOGGER.child({});
-logger.level = "trace";
+  const sendMessage = async (text) => {
+    await bot.sendMessage(message.from, { text }, { quoted: message });
+  };
 
-const msgRetryCounterCache = new NodeCache();
+  // Logo styles API list
+  const logoStyles = {
+    logo: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-a-blackpink-style-logo-with-members-signatures-810.html&name=",
+    blackpink: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/online-blackpink-style-logo-maker-effect-711.html&name=",
+    glossysilver: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-glossy-silver-3d-text-effect-online-802.html&name=",
+    Naruto: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/naruto-shippuden-logo-style-text-effect-online-808.html&name=",
+    digitalglitch: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-digital-glitch-text-effects-online-767.html&name=",
+    pixelglitch: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-pixel-glitch-text-effect-online-769.html&name=",
+    water: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-water-effect-text-online-295.html&name=", // Added Water style
+    bulb: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/text-effects-incandescent-bulbs-219.html&name=", // Added Water style
+zodiacs: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/free-zodiac-online-logo-maker-491.html&name=", // Added Water style
+water3D: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/water-3d-text-effect-online-126.html&name=", // Added Water style
+dragonfire: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/dragon-fire-text-effect-111.html&name=", // Added Water style
+bokeh: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/bokeh-text-effect-86.html&name=", // Added Water style
+Queencard: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-a-personalized-queen-card-avatar-730.html&name=", // Added Water style
+birthdaycake: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/birthday-cake-96.html&name=", // Added birthday cake style
+underwater: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/3d-underwater-text-effect-online-682.html&name=", // Added Water style
+glow: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/advanced-glow-effects-74.html&name=", // Added Water style
+wetglass: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/write-text-on-wet-glass-online-589.html&name=", // Added Water style
+graffiti: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/graffiti-color-199.html&name=", // Added Water style
+halloween: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/cards-halloween-online-81.html&name=", // Added Water style
+tattoo: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/make-tattoos-online-by-your-name-309.html&name=", // Added Water style
+luxury: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/free-luxury-logo-maker-create-logo-online-458.html&name=", // Added Water style
+avatar: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-avatar-gold-online-303.html&name=", // Added Water style
+blood: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/write-blood-text-on-the-wall-264.html&name=", // Added Water style
+hacker: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-anonymous-hacker-avatars-cyan-neon-677.html&name=", // Added Water style
+paint: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-3d-colorful-paint-text-effect-online-801.html&name=", // Added Water style
+rotation: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-elegant-rotation-logo-online-586.html&name=", // Added Water style
+graffiti2: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-a-cartoon-style-graffiti-text-effect-online-668.html&name=", // Added Water style
+typography: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-online-typography-art-effects-with-multiple-layers-811.html&name=", // Added Water style
+horror: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/writing-horror-letters-on-metal-plates-265.html=", // Added Water style
+valentine: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/beautiful-flower-valentine-s-day-greeting-cards-online-512.html&name=", // Added Water style
+team: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-logo-team-logo-gaming-assassin-style-574.html&name=", // Added Water style
+gold: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/modern-gold-3-212.html&name=", // Added Water style
+pentakill: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-a-lol-pentakill-231.html&name=", // Added Water style
+galaxy: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/galaxy-text-effect-new-258.html&name=", // Added Water style
+birthdayflower: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/write-name-on-flower-birthday-cake-pics-472.html&name=", // Added Water style
+pubg: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/pubg-mascot-logo-maker-for-an-esports-team-612.html&name=", // Added Water style
+   sand3D: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/realistic-3d-sand-text-effect-online-580.html&name=", // Added Water style
+wall: "https://api-pink-venom.vercel.app/api/logo?url=https://textpro.me/break-wall-text-effect-871.html", // Added Water style
+womensday: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/create-beautiful-international-women-s-day-cards-399.html&name=", // Added Water style
+thunder1: "https://api-pink-venom.vercel.app/api/logo?url=https://textpro.me/online-thunder-text-effect-generator-1031.html&name=", // Added Water style
+snow: "https://api-pink-venom.vercel.app/api/logo?url=https://textpro.me/create-beautiful-3d-snow-text-effect-online-1101.html&name=", // Added Water style
+thunder: "https://api-pink-venom.vercel.app/api/logo?url=https://textpro.me/online-thunder-text-effect-generator-1031.html&name=", // Added Water style
+ textlight: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/text-light-effets-234.html&name=", // Added Water style
+sand: "https://api-pink-venom.vercel.app/api/logo?url=https://en.ephoto360.com/write-in-sand-summer-beach-online-576.html&name=" // Added Sand style
+  };
 
-const __filename = new URL(import.meta.url).pathname;
-const __dirname = path.dirname(__filename);
-
-const sessionDir = path.join(__dirname, 'session');
-const credsPath = path.join(sessionDir, 'creds.json');
-
-// Ensure session directory exists
-if (!fs.existsSync(sessionDir)) {
-    fs.mkdirSync(sessionDir, { recursive: true });
-}
-
-// --- Persistent Message Store for Anti-Delete ---
-const storeFilePath = path.join(__dirname, 'messages-backup.json');
-const store = {
-    chats: {},
-    addMessage: function(message) {
-        const remoteJid = message.key.remoteJid;
-        if (!this.chats[remoteJid]) {
-            this.chats[remoteJid] = [];
-        }
-        // Prevent duplicates
-        if (!this.chats[remoteJid].some(m => m.key.id === message.key.id)) {
-            this.chats[remoteJid].push(message);
-            this.save();
-        }
-    },
-    getMessage: function(remoteJid, messageId) {
-        if (!this.chats[remoteJid]) return null;
-        return this.chats[remoteJid].find(m => m.key.id === messageId);
-    },
-    removeMessage: function(remoteJid, messageId) {
-        if (!this.chats[remoteJid]) return false;
-        this.chats[remoteJid] = this.chats[remoteJid].filter(m => m.key.id !== messageId);
-        this.save();
-        return true;
-    },
-    load: function() {
-        if (fs.existsSync(storeFilePath)) {
-            try {
-                this.chats = JSON.parse(fs.readFileSync(storeFilePath));
-            } catch (_) { this.chats = {}; }
-        }
-    },
-    save: function() {
-        try {
-            fs.writeFileSync(storeFilePath, JSON.stringify(this.chats, null, 2));
-        } catch (_) {}
+  if (logoStyles[command]) {
+    const userInput = message.body.slice(prefix.length + command.length + 1).trim();
+    if (!userInput) {
+      await sendMessage("⚠️ Please provide text to generate a logo!");
+      return;
     }
+
+    try {
+      await bot.sendMessage(message.from, { react: { text: '⏳', key: message.key } });
+
+      const apiUrl = logoStyles[command] + encodeURIComponent(userInput);
+      const response = await axios.get(apiUrl);
+      const data = response.data;
+
+      if (data.status && data.result && data.result.download_url) {
+        const imageUrl = data.result.download_url;
+        await bot.sendMessage(message.from, { image: { url: imageUrl }, caption: "> logo by Buddy-XTR" }, { quoted: message });
+
+        await bot.sendMessage(message.from, { react: { text: '✅', key: message.key } });
+      } else {
+        await sendMessage("⚠️ Failed to generate the logo. Please try again later!");
+      }
+    } catch (error) {
+      console.error(error);
+      await sendMessage("⚠️ An error occurred while generating the logo. Please try again later!");
+    }
+  }
 };
-store.load();
 
-// Helper function to create notification message
-function createNotification(deletedMessage) {
-    const sender = deletedMessage.key.participant || deletedMessage.key.remoteJid;
-    const chatType = deletedMessage.key.remoteJid.endsWith('@g.us') ? 'Group' : 'Private Chat';
-    const chatName = chatType === 'Group' ? deletedMessage.key.remoteJid : 'Private Chat';
-    return `⚠️ *DELETED MESSAGE DETECTED* ⚠️\n\n`
-        + `*Chat Type:* ${chatType}\n`
-        + `*Chat:* ${chatName}\n`
-        + `*Sender:* @${sender.split('@')[0]}\n`
-        + `*Time:* ${moment().tz("Africa/Nairobi").format('YYYY-MM-DD HH:mm:ss')}\n\n`;
-}
+export default LogoCmd;
 
-// Enhanced media downloader with better error handling
-async function downloadMedia(Matrix, message) {
-    try {
-        const mtype = Object.keys(message)[0];
-        const mediaObj = message[mtype];
-        if (!mediaObj || !mediaObj.mediaKey) {
-            return null;
-        }
-        let mediaType;
-        switch (mtype) {
-            case 'imageMessage':
-                mediaType = 'image'; break;
-            case 'videoMessage':
-                mediaType = 'video'; break;
-            case 'audioMessage':
-                mediaType = 'audio'; break;
-            case 'documentMessage':
-                mediaType = 'document'; break;
-            case 'stickerMessage':
-                mediaType = 'sticker'; break;
-            case 'voiceMessage':
-                mediaType = 'voice'; break;
-            default:
-                return null;
-        }
-        const stream = await downloadContentFromMessage(mediaObj, mediaType);
-        const bufferArray = [];
-        for await (const chunk of stream) bufferArray.push(chunk);
-        return Buffer.concat(bufferArray);
-    } catch (error) {
-        console.error('Error downloading media:', error);
-        return null;
-    }
-}
-
-async function downloadSessionData() {
-    console.log("Debugging SESSION_ID:", config.SESSION_ID);
-
-    if (!config.SESSION_ID) {
-        console.error('Please add your session to SESSION_ID env !!');
-        return false;
-    }
-
-    const sessdata = config.SESSION_ID.split("Buddy;;;")[1];
-
-    if (!sessdata || !sessdata.includes("#")) {
-        console.error('Invalid SESSION_ID format! It must contain both file ID and decryption key.');
-        return false;
-    }
-
-    const [fileID, decryptKey] = sessdata.split("#");
-
-    try {
-        console.log("🔄 Syncing Session...");
-        const file = File.fromURL(`https://mega.nz/file/${fileID}#${decryptKey}`);
-
-        const data = await new Promise((resolve, reject) => {
-            file.download((err, data) => {
-                if (err) reject(err);
-                else resolve(data);
-            });
-        });
-
-        await fs.promises.writeFile(credsPath, data);
-        console.log("🧓 Session Successfully Loaded !!");
-        return true;
-    } catch (error) {
-        console.error('🦖 Failed to download session data:', error);
-        return false;
-    }
-}
-
-async function start() {
-    try {
-        const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
-        const { version, isLatest } = await fetchLatestBaileysVersion();
-        console.log(`using WA v${version.join('.')}, isLatest: ${isLatest}`);
-
-        const Matrix = makeWASocket({
-            version,
-            logger: pino({ level: 'silent' }),
-            printQRInTerminal: useQR,
-            browser: ["Buddy", "safari", "3.3"],
-            auth: state,
-            getMessage: async (key) => {
-                if (store) {
-                    const msg = store.chats[key.remoteJid]?.find(m => m.key.id === key.id);
-                    return msg?.message || undefined;
-                }
-                return { conversation: "whatsapp user bot" };
-            },
-            msgRetryCounterCache
-        });
-
-        Matrix.ev.on('connection.update', (update) => {
-            const { connection, lastDisconnect } = update;
-            if (connection === 'close') {
-                if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
-                    start();
-                }
-            } else if (connection === 'open') {
-                if (initialConnection) {
-                    console.log(chalk.green("Buddy is now connected"));
-                    Matrix.sendMessage(Matrix.user.id, {
-                        image: { url: "https://files.catbox.moe/bxnzi0.jpg" },
-                        caption: `
-╭───────────⊷ ​
-│ Buddy-XTR
-╰───────────⊷
-╭───────────⊷
-│ 𝕳𝖆𝖛𝖊 𝖋𝖚𝖓; 𝕲𝖊𝖙 𝖘𝖚𝖕𝖕𝖔𝖗𝖙
-│ 𝕵𝖔𝖎𝖓; 𝕱𝖊𝖊𝖉𝖇𝖆𝖈𝖐
-│ 𝖈𝖔𝖒𝖒𝖆𝖓𝖉: ${prefix}
-╰───────────⊷
-*(follow us)*
-https://shorturl.at/pWIkL
-                        `
-                    });
-                    initialConnection = false;
-                } else {
-                    console.log(chalk.blue("♻ Connection reestablished after restart."));
-                }
-            }
-        });
-
-        Matrix.ev.on('creds.update', saveCreds);
-
-        // Attach main handler and group/call updates
-        Matrix.ev.on("messages.upsert", async chatUpdate => await Handler(chatUpdate, Matrix, logger));
-        Matrix.ev.on("call", async (json) => await Callupdate(json, Matrix));
-        Matrix.ev.on("group-participants.update", async (messag) => await GroupUpdate(Matrix, messag));
-
-        if (config.MODE === "public") {
-            Matrix.public = true;
-        } else if (config.MODE === "private") {
-            Matrix.public = false;
-        }
-
-        // --- Enhanced Auto Reaction to chats ---
-        Matrix.ev.on('messages.upsert', async (chatUpdate) => {
-            try {
-                if (!(config.AUTO_REACT === true || config.AUTO_REACT === "true")) return;
-                const messages = chatUpdate.messages;
-                if (!messages || messages.length === 0) return;
-                const mek = messages[0];
-                if (mek.key?.fromMe) return;
-                if (mek.message) {
-                    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                    await doReact(randomEmoji, mek, Matrix);
-                }
-            } catch (err) {
-                console.error('Error during auto reaction:', err);
-            }
-        });
-
-// --- Enhanced Auto Like Status (Status Reaction) ---
-Matrix.ev.on('messages.upsert', async (chatUpdate) => {
-    try {
-        // Debug log
-        console.log('Received message upsert event');
-        
-        if (!(config.AUTO_STATUS_REACT === true || config.AUTO_STATUS_REACT === "true")) {
-            console.log('Auto reaction disabled in config');
-            return;
-        }
-        
-        const messages = chatUpdate.messages;
-        if (!messages || messages.length === 0) {
-            console.log('No messages in update');
-            return;
-        }
-        
-        const mek = messages[0];
-        if (!mek.message) {
-            console.log('Message content missing');
-            return;
-        }
-        
-        console.log('Processing message from:', mek.key.remoteJid);
-        
-        const contentType = getContentType(mek.message);
-        const message = (contentType === 'ephemeralMessage') 
-            ? mek.message.ephemeralMessage.message 
-            : mek.message;
-        
-        // Enhanced status check
-        if (mek.key.remoteJid === 'status@broadcast' && !mek.key.fromMe) {
-            console.log('Detected status update to react to');
-            
-            const emojiList = [
-                '🦖', '💸', '💨', '🫮', '🐕‍🦺', '💯', '🔥', '💫', '💎', '⚡', '🩵', '🖤',
-                '👀', '🙌', '🙆', '🚩', '💻', '🤖', '😎', '🌰', '🍕', '🥤', '🍔', '🍟'
-            ];
-            const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
-            
-            console.log(`Attempting to react with: ${randomEmoji}`);
-            
-            try {
-                const reaction = {
-                    react: {
-                        text: randomEmoji,
-                        key: mek.key,
-                    }
-                };
-                
-                console.log('Sending reaction payload:', reaction);
-                
-                // Add delay to ensure status is fully loaded
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Send reaction with additional options
-                await Matrix.sendMessage(mek.key.remoteJid, reaction, {
-                    messageId: mek.key.id,
-                    participant: mek.key.participant || undefined
-                });
-                
-                console.log(`Successfully reacted to status with: ${randomEmoji}`);
-                
-                // Additional verification
-                setTimeout(async () => {
-                    try {
-                        const checkReaction = await Matrix.fetchMessages(mek.key.remoteJid, {
-                            limit: 1,
-                            before: mek.key.id
-                        });
-                        console.log('Reaction verification:', checkReaction);
-                    } catch (verifyErr) {
-                        console.error('Verification failed:', verifyErr);
-                    }
-                }, 2000);
-                
-            } catch (reactErr) {
-                console.error('Reaction failed:', reactErr);
-                console.error('Reaction error details:', {
-                    remoteJid: mek.key.remoteJid,
-                    messageId: mek.key.id,
-                    participant: mek.key.participant
-                });
-                
-                // Retry once after failure
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    await Matrix.sendMessage(mek.key.remoteJid, reaction);
-                    console.log('Retry succeeded after initial failure');
-                } catch (retryErr) {
-                    console.error('Retry also failed:', retryErr);
-                }
-            }
-        } else {
-            console.log('Not a status update or is our own message');
-        }
-    } catch (err) {
-        console.error("Auto Like Status Error:", err);
-        console.error('Error context:', {
-            message: messages?.[0]?.key,
-            errorStack: err.stack
-        });
-    }
-});
-//END OF STATUS REACTION
-    // --- START ANTI-DELETE HANDLER ---
-Matrix.ev.on("messages.upsert", async (m) => {
-    if (!(config.ANTI_DELETE === true || config.ANTI_DELETE === "true")) return;
-    const { messages } = m;
-    const ms = messages[0];
-    if (!ms.message) return;
-
-    const messageKey = ms.key;
-    const remoteJid = messageKey.remoteJid;
-    if (remoteJid === "status@broadcast") return;
-
-    // Save the received message to storage
-    store.addMessage(ms);
-
-    // Handle deleted messages
-    if (ms.message.protocolMessage && ms.message.protocolMessage.type === 0) {
-        const deletedKey = ms.message.protocolMessage.key;
-        const chatMessages = store.chats[remoteJid];
-        const deletedMessage = chatMessages?.find(
-            (msg) => msg.key.id === deletedKey.id
-        );
-        if (deletedMessage) {
-            try {
-                const participant = deletedMessage.key.participant || deletedMessage.key.remoteJid;
-                const originalSender = deletedMessage.key.fromMe
-                    ? Matrix.user.id
-                    : (deletedMessage.key.participant || deletedMessage.key.remoteJid);
-                const messageType = Object.keys(deletedMessage.message)[0] || "Unknown Type";
-                const chatType = remoteJid.endsWith('@g.us') ? 'Group' : 'Private Chat';
-                const originalTimestamp = deletedMessage.messageTimestamp
-                    ? moment(deletedMessage.messageTimestamp * 1000).tz("Africa/Nairobi").format('YYYY-MM-DD HH:mm:ss')
-                    : "Unknown";
-                const deletedAt = moment().tz("Africa/Nairobi").format('YYYY-MM-DD HH:mm:ss');
-
-                const notification =
-                    `*🟢 Buddy-XTR antidelete*\n` +
-                    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                    `*🚨 Deleted by:* @${participant.split("@")[0]}\n` +
-                    `*👤 Original sender:* @${originalSender.split("@")[0]}\n` +
-                    `*💬 Message type:* ${messageType}\n` +
-                    `*👥 Chat type:* ${chatType}\n` +
-                    `*📌 Chat ID:* ${remoteJid}\n` +
-                    `*🕰️ Sent at:* ${originalTimestamp}\n` +
-                    `*🗑️ Deleted at:* ${deletedAt}\n` +
-                    `━━━━━━━━━━━━━━━━━━━━━━`;
-
-                const botOwnerJid = `${config.OWNER_NUMBER}@s.whatsapp.net`;
-
-                // Only send to bot owner's PM
-                if (deletedMessage.message.conversation) {
-                    await Matrix.sendMessage(botOwnerJid, {
-                        text: `${notification}\n\n*Recovered message:*\n${deletedMessage.message.conversation}`,
-                        mentions: [participant, originalSender],
-                    });
-                } else if (deletedMessage.message.imageMessage) {
-                    const caption = deletedMessage.message.imageMessage.caption || '';
-                    const buffer = await downloadMedia(Matrix, { imageMessage: deletedMessage.message.imageMessage });
-                    await Matrix.sendMessage(botOwnerJid, {
-                        image: buffer,
-                        caption: `${notification}\n\n*Recovered image caption:*\n${caption}`,
-                        mentions: [participant, originalSender],
-                    });
-                } else if (deletedMessage.message.videoMessage) {
-                    const caption = deletedMessage.message.videoMessage.caption || '';
-                    const buffer = await downloadMedia(Matrix, { videoMessage: deletedMessage.message.videoMessage });
-                    await Matrix.sendMessage(botOwnerJid, {
-                        video: buffer,
-                        caption: `${notification}\n\n*Recovered video caption:*\n${caption}`,
-                        mentions: [participant, originalSender],
-                    });
-                } else if (deletedMessage.message.audioMessage) {
-                    const buffer = await downloadMedia(Matrix, { audioMessage: deletedMessage.message.audioMessage });
-                    await Matrix.sendMessage(botOwnerJid, {
-                        audio: buffer,
-                        ptt: true,
-                        caption: notification,
-                        mentions: [participant, originalSender],
-                    });
-                } else if (deletedMessage.message.stickerMessage) {
-                    const buffer = await downloadMedia(Matrix, { stickerMessage: deletedMessage.message.stickerMessage });
-                    await Matrix.sendMessage(botOwnerJid, {
-                        sticker: buffer,
-                        caption: notification,
-                        mentions: [participant, originalSender],
-                    });
-                }
-            } catch (error) {
-                console.error('Error handling deleted message:', error);
-            }
-        }
-    }
-});
-// --- END ANTI-DELETE HANDLER ---
-
-        // --- VIEW STATUS HANDLER (NEW) ---
-        // Automatically mark status as read/viewed
-        Matrix.ev.on('messages.upsert', async (chatUpdate) => {
-            try {
-                const messages = chatUpdate.messages;
-                if (!messages || messages.length === 0) return;
-                const mek = messages[0];
-                if (mek.key.remoteJid === 'status@broadcast') {
-                    await Matrix.readMessages([mek.key]);
-                    console.log("Automatically viewed status update.");
-                }
-            } catch (err) {
-                console.error("Error marking status as viewed:", err);
-            }
-        });
-        // --- END VIEW STATUS HANDLER ---
-
-    } catch (error) {
-        console.error('Critical Error:', error);
-        process.exit(1);
-    }
-}
-
-async function init() {
-    if (fs.existsSync(credsPath)) {
-        console.log("🔒 Session file found, proceeding without QR code.");
-        await start();
-    } else {
-        const sessionDownloaded = await downloadSessionData();
-        if (sessionDownloaded) {
-            console.log("🔒 Session downloaded, starting bot.");
-            await start();
-        } else {
-            console.log("No session found or downloaded, QR code will be printed for authentication.");
-            useQR = true;
-            await start();
-        }
-    }
-}
-
-init();
-
-app.get('/', (req, res) => {
-    res.send('Buddy-XTR CONNECTED SUCCESSFULLY ✅');
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
